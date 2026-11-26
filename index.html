@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ナンジャモンジャ風ゲーム</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      touch-action: manipulation;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Hiragino Kaku Gothic ProN", sans-serif;
+      background-color: #f4f1ea;
+      color: #333;
+      margin: 0;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    h1 {
+      font-size: 1.4rem;
+      margin: 8px 0 16px;
+      color: #d9534f;
+      text-align: center;
+    }
+    .screen {
+      display: none;
+      width: 100%;
+      max-width: 440px;
+      background: #fff;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .screen.active {
+      display: block;
+    }
+    /* 設定画面 */
+    .setting-group {
+      margin-bottom: 18px;
+    }
+    .setting-group label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 6px;
+      font-size: 0.95rem;
+    }
+    .player-input-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    input[type="text"], select {
+      flex: 1;
+      padding: 10px 12px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.05s, opacity 0.15s;
+    }
+    button:active {
+      transform: scale(0.97);
+    }
+    .btn-primary {
+      background-color: #ff6b6b;
+      color: #fff;
+      width: 100%;
+      font-size: 1.1rem;
+      padding: 14px;
+    }
+    .btn-secondary {
+      background-color: #4ecdc4;
+      color: #fff;
+    }
+    .btn-small {
+      padding: 8px 12px;
+      font-size: 0.85rem;
+    }
+    .player-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .player-tag {
+      background: #eef2f5;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .player-tag span {
+      color: #888;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    /* ゲーム画面 */
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      font-weight: bold;
+      color: #666;
+      margin-bottom: 12px;
+      background: #f8f9fa;
+      padding: 8px 12px;
+      border-radius: 8px;
+    }
+    .card-area {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      max-height: 290px;
+      border: 4px solid #333;
+      border-radius: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 14px;
+      position: relative;
+      overflow: hidden;
+      background-color: #fffdf9;
+      user-select: none;
+    }
+    .card-area.back {
+      background: repeating-linear-gradient(
+        45deg,
+        #ff6b6b,
+        #ff6b6b 15px,
+        #ff8787 15px,
+        #ff8787 30px
+      );
+      color: #fff;
+      cursor: pointer;
+    }
+    .card-area img {
+      width: 85%;
+      height: 85%;
+      object-fit: contain;
+    }
+    .fallback-char {
+      font-size: 5rem;
+      line-height: 1;
+    }
+    .fallback-label {
+      margin-top: 8px;
+      font-weight: bold;
+      font-size: 1.1rem;
+      background: rgba(255,255,255,0.85);
+      padding: 4px 12px;
+      border-radius: 12px;
+    }
+    .badge {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: bold;
+      color: #fff;
+    }
+    .badge-new {
+      background-color: #ff9f43;
+    }
+    .badge-known {
+      background-color: #ee5253;
+    }
+    .name-memo-box {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .score-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .player-score-btn {
+      background: #f1f3f5;
+      color: #333;
+      border: 2px solid #dee2e6;
+      padding: 10px 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border-radius: 12px;
+    }
+    .player-score-btn .p-name {
+      font-size: 0.95rem;
+      margin-bottom: 2px;
+    }
+    .player-score-btn .p-pts {
+      font-size: 1.2rem;
+      color: #d9534f;
+    }
+    .action-hint {
+      text-align: center;
+      font-size: 0.85rem;
+      color: #666;
+      margin: 6px 0;
+    }
+    /* リザルト画面 */
+    .result-list {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 16px;
+    }
+    .result-list li {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px;
+      border-bottom: 1px solid #eee;
+      font-size: 1.1rem;
+      font-weight: bold;
+    }
+    .result-list li:first-child {
+      background: #fff9db;
+      border-radius: 8px;
+      color: #e67700;
+    }
+    .char-gallery {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .gallery-item {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 6px;
+      text-align: center;
+      font-size: 0.75rem;
+    }
+    .gallery-item img {
+      width: 100%;
+      height: 60px;
+      object-fit: contain;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 1. スタート画面 -->
+  <div id="setup-screen" class="screen active">
+    <h1>👾 ナンジャモンジャ風</h1>
+    
+    <div class="setting-group">
+      <label>プレイヤーを追加（2人〜）</label>
+      <div class="player-input-row">
+        <input type="text" id="player-name-input" placeholder="名前を入力" maxlength="10">
+        <button class="btn-secondary" onclick="addPlayer()">追加</button>
+      </div>
+      <div class="player-tags" id="player-tags"></div>
+    </div>
+
+    <div class="setting-group">
+      <label>キャラの種類数（各4枚ずつ山札に入ります）</label>
+      <select id="char-count-select">
+        <option value="6">6種類（計24枚・サクッと）</option>
+        <option value="8">8種類（計32枚・ちょうどいい）</option>
+        <option value="10" selected>10種類（計40枚・標準）</option>
+        <option value="12">12種類（計48枚・たっぷり）</option>
+      </select>
+    </div>
+
+    <div class="setting-group">
+      <label>
+        <input type="checkbox" id="enable-memo" checked>
+        初登場時に「あだ名メモ」を入力できるようにする
+      </label>
+    </div>
+
+    <button class="btn-primary" onclick="startGame()">ゲームスタート！</button>
+  </div>
+
+  <!-- 2. ゲーム画面 -->
+  <div id="game-screen" class="screen">
+    <div class="status-bar">
+      <span>残り山札: <strong id="deck-count">0</strong>枚</span>
+      <span>場の溜まり: <strong id="pool-count">0</strong>枚</span>
+    </div>
+
+    <!-- カード表示エリア -->
+    <div id="card-display" class="card-area back" onclick="drawCard()">
+      <div style="font-size: 1.5rem; font-weight: bold;">タップしてめくる</div>
+    </div>
+
+    <!-- 初登場時のあだ名メモ欄 -->
+    <div id="memo-area" class="name-memo-box" style="display: none;">
+      <input type="text" id="char-name-input" placeholder="つけた名前をメモ（任意）">
+      <button class="btn-secondary btn-small" onclick="saveCharName()">保存</button>
+    </div>
+
+    <div id="action-instruction" class="action-hint">
+      カードをタップして次のキャラをめくろう！
+    </div>
+
+    <button id="next-btn" class="btn-primary" onclick="drawCard()" style="margin-bottom: 10px;">
+      次のカードをめくる
+    </button>
+
+    <div class="action-hint" style="margin-top: 12px; font-weight: bold;">
+      ▼ 名前を叫んで正解した人をタップ（場の枚数を獲得）
+    </div>
+    <div class="score-grid" id="score-grid"></div>
+  </div>
+
+  <!-- 3. リザルト画面 -->
+  <div id="result-screen" class="screen">
+    <h1>🎉 結果発表！</h1>
+    <ul class="result-list" id="result-list"></ul>
+    
+    <div style="font-weight: bold; font-size: 0.9rem; margin-top: 16px;">今回登場したキャラたち</div>
+    <div class="char-gallery" id="char-gallery"></div>
+
+    <button class="btn-primary" onclick="resetToSetup()" style="margin-top: 20px;">
+      設定画面に戻る
+    </button>
+  </div>
+
+  <script>
+    // 仮表示用の絵文字と背景色（画像がない場合のフォールバック）
+    const FALLBACK_DATA = [
+      { emoji: "🐙", color: "#ffe3e3" },
+      { emoji: "🌵", color: "#d3f9d8" },
+      { emoji: "👻", color: "#e7f5ff" },
+      { emoji: "🍄", color: "#fff3bf" },
+      { emoji: "🤖", color: "#f3d9fa" },
+      { emoji: "🦖", color: "#c3fae8" },
+      { emoji: "👽", color: "#e5dbff" },
+      { emoji: "🦑", color: "#ffd8a8" },
+      { emoji: "🐡", color: "#d0ebff" },
+      { emoji: "🦥", color: "#f4fce3" },
+      { emoji: "🦩", color: "#ffdeeb" },
+      { emoji: "🦔", color: "#f1f3f5" }
+    ];
+
+    let players = ["プレイヤー1", "プレイヤー2", "プレイヤー3"];
+    let scores = {};
+    let deck = [];
+    let poolCount = 0;
+    let seenChars = {}; // { charId: { seen: true, name: "" } }
+    let currentCardId = null;
+    let charCount = 10;
+    let enableMemo = true;
+
+    // 初期プレイヤー表示
+    renderPlayerTags();
+
+    function addPlayer() {
+      const input = document.getElementById("player-name-input");
+      const name = input.value.trim();
+      if (!name) return;
+      if (players.includes(name)) {
+        alert("同じ名前のプレイヤーがいます");
+        return;
+      }
+      players.push(name);
+      input.value = "";
+      renderPlayerTags();
+    }
+
+    function removePlayer(index) {
+      if (players.length <= 2) {
+        alert("最低2人のプレイヤーが必要です");
+        return;
+      }
+      players.splice(index, 1);
+      renderPlayerTags();
+    }
+
+    function renderPlayerTags() {
+      const container = document.getElementById("player-tags");
+      container.innerHTML = "";
+      players.forEach((p, idx) => {
+        const tag = document.createElement("div");
+        tag.className = "player-tag";
+        tag.innerHTML = `${p} <span onclick="removePlayer(${idx})">×</span>`;
+        container.appendChild(tag);
+      });
+    }
+
+    function startGame() {
+      charCount = parseInt(document.getElementById("char-count-select").value, 10);
+      enableMemo = document.getElementById("enable-memo").checked;
+
+      // スコア初期化
+      scores = {};
+      players.forEach(p => scores[p] = 0);
+
+      // 山札作成（各キャラ4枚ずつ）
+      deck = [];
+      for (let i = 1; i <= charCount; i++) {
+        for (let copy = 0; copy < 4; copy++) {
+          deck.push(i);
+        }
+      }
+      // シャッフル（Fisher-Yates）
+      for (let i = deck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [deck[i], deck[j]] = [deck[j], deck[i]];
+      }
+
+      poolCount = 0;
+      seenChars = {};
+      currentCardId = null;
+
+      // 画面切り替え
+      document.getElementById("setup-screen").classList.remove("active");
+      document.getElementById("result-screen").classList.remove("active");
+      document.getElementById("game-screen").classList.add("active");
+
+      // カード表示リセット
+      const cardDisplay = document.getElementById("card-display");
+      cardDisplay.className = "card-area back";
+      cardDisplay.style.backgroundColor = "";
+      cardDisplay.innerHTML = '<div style="font-size: 1.5rem; font-weight: bold;">タップしてめくる</div>';
+      document.getElementById("memo-area").style.display = "none";
+
+      updateStatus();
+      renderScoreButtons();
+    }
+
+    function drawCard() {
+      if (deck.length === 0) {
+        endGame();
+        return;
+      }
+
+      // 山札から1枚引く
+      currentCardId = deck.pop();
+      poolCount++;
+
+      const cardDisplay = document.getElementById("card-display");
+      cardDisplay.className = "card-area";
+
+      const isFirstTime = !seenChars[currentCardId];
+      if (isFirstTime) {
+        seenChars[currentCardId] = { seen: true, name: "" };
+      }
+
+      // バッジ作成
+      const badgeHtml = isFirstTime
+        ? `<div class="badge badge-new">✨ 初登場！名前をつけよう</div>`
+        : `<div class="badge badge-known">🔥 2回目以降！名前を叫べ！</div>`;
+
+      // 画像パス（images/01.png 〜 12.png）
+      const paddedId = String(currentCardId).padStart(2, "0");
+      const imgPath = `images/${paddedId}.png`;
+      const fb = FALLBACK_DATA[(currentCardId - 1) % FALLBACK_DATA.length];
+
+      cardDisplay.style.backgroundColor = fb.color;
+      cardDisplay.innerHTML = `
+        ${badgeHtml}
+        <img src="${imgPath}" alt="キャラ${currentCardId}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+        <div style="display:none; flex-direction:column; align-items:center;">
+          <div class="fallback-char">${fb.emoji}</div>
+          <div class="fallback-label">仮キャラ No.${paddedId}</div>
+        </div>
+      `;
+
+      // メモ欄の制御
+      const memoArea = document.getElementById("memo-area");
+      const nameInput = document.getElementById("char-name-input");
+      if (enableMemo && isFirstTime) {
+        memoArea.style.display = "flex";
+        nameInput.value = "";
+      } else {
+        memoArea.style.display = "none";
+      }
+
+      // ガイダンス文言
+      const inst = document.getElementById("action-instruction");
+      if (isFirstTime) {
+        inst.textContent = "初登場です！名前をつけたら「次のカードをめくる」へ";
+      } else {
+        inst.textContent = "一番早く名前を叫んだ人のボタンをタップ！";
+      }
+
+      // 最後の1枚だった場合
+      const nextBtn = document.getElementById("next-btn");
+      if (deck.length === 0) {
+        nextBtn.textContent = "結果発表へ進む";
+      } else {
+        nextBtn.textContent = "次のカードをめくる";
+      }
+
+      updateStatus();
+    }
+
+    function saveCharName() {
+      if (!currentCardId) return;
+      const val = document.getElementById("char-name-input").value.trim();
+      if (val) {
+        seenChars[currentCardId].name = val;
+        document.getElementById("memo-area").style.display = "none";
+        document.getElementById("action-instruction").textContent = `「${val}」で記録しました！次のカードへ`;
+      }
+    }
+
+    function awardPoints(playerName) {
+      if (poolCount === 0) {
+        alert("まだ場にカードが出ていません！");
+        return;
+      }
+      scores[playerName] += poolCount;
+      const gained = poolCount;
+      poolCount = 0;
+
+      updateStatus();
+      renderScoreButtons();
+
+      document.getElementById("action-instruction").textContent =
+        `🎉 ${playerName} が ${gained}枚 獲得！次のカードをめくろう`;
+
+      if (deck.length === 0) {
+        setTimeout(endGame, 600);
+      }
+    }
+
+    function updateStatus() {
+      document.getElementById("deck-count").textContent = deck.length;
+      document.getElementById("pool-count").textContent = poolCount;
+    }
+
+    function renderScoreButtons() {
+      const grid = document.getElementById("score-grid");
+      grid.innerHTML = "";
+      players.forEach(p => {
+        const btn = document.createElement("button");
+        btn.className = "player-score-btn";
+        btn.onclick = () => awardPoints(p);
+        btn.innerHTML = `
+          <span class="p-name">${p}</span>
+          <span class="p-pts">${scores[p]} 枚</span>
+        `;
+        grid.appendChild(btn);
+      });
+    }
+
+    function endGame() {
+      document.getElementById("game-screen").classList.remove("active");
+      document.getElementById("result-screen").classList.add("active");
+
+      // ランキング表示
+      const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+      const list = document.getElementById("result-list");
+      list.innerHTML = "";
+      sorted.forEach(([name, pts], idx) => {
+        const li = document.createElement("li");
+        const medal = idx === 0 ? "👑 " : `${idx + 1}位 `;
+        li.innerHTML = `<span>${medal}${name}</span><span>${pts} 枚</span>`;
+        list.appendChild(li);
+      });
+
+      // 登場キャラ一覧
+      const gallery = document.getElementById("char-gallery");
+      gallery.innerHTML = "";
+      for (let i = 1; i <= charCount; i++) {
+        if (!seenChars[i]) continue;
+        const paddedId = String(i).padStart(2, "0");
+        const fb = FALLBACK_DATA[(i - 1) % FALLBACK_DATA.length];
+        const savedName = seenChars[i].name || `キャラ No.${paddedId}`;
+
+        const item = document.createElement("div");
+        item.className = "gallery-item";
+        item.innerHTML = `
+          <img src="images/${paddedId}.png" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+          <div style="display:none; font-size:2rem;">${fb.emoji}</div>
+          <div style="font-weight:bold; margin-top:4px;">${savedName}</div>
+        `;
+        gallery.appendChild(item);
+      }
+    }
+
+    function resetToSetup() {
+      document.getElementById("result-screen").classList.remove("active");
+      document.getElementById("setup-screen").classList.add("active");
+    }
+  </script>
+</body>
+</html>
