@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ナンジャモンジャ風ゲーム</title>
+  <title>お絵描きナンジャモンジャ</title>
   <style>
     * {
       box-sizing: border-box;
@@ -14,15 +14,15 @@
       background-color: #f4f1ea;
       color: #333;
       margin: 0;
-      padding: 16px;
+      padding: 12px;
       display: flex;
       flex-direction: column;
       align-items: center;
       min-height: 100vh;
     }
     h1 {
-      font-size: 1.4rem;
-      margin: 8px 0 16px;
+      font-size: 1.35rem;
+      margin: 4px 0 14px;
       color: #d9534f;
       text-align: center;
     }
@@ -32,28 +32,28 @@
       max-width: 440px;
       background: #fff;
       border-radius: 16px;
-      padding: 20px;
+      padding: 18px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     }
     .screen.active {
       display: block;
     }
-    /* 設定画面 */
+    /* 共通フォーム・ボタン */
     .setting-group {
-      margin-bottom: 18px;
+      margin-bottom: 16px;
     }
     .setting-group label {
       display: block;
       font-weight: bold;
       margin-bottom: 6px;
-      font-size: 0.95rem;
+      font-size: 0.92rem;
     }
     .player-input-row {
       display: flex;
       gap: 8px;
       margin-bottom: 8px;
     }
-    input[type="text"], select {
+    input[type="text"] {
       flex: 1;
       padding: 10px 12px;
       border: 2px solid #ddd;
@@ -63,8 +63,8 @@
     button {
       border: none;
       border-radius: 10px;
-      padding: 12px 16px;
-      font-size: 1rem;
+      padding: 11px 14px;
+      font-size: 0.95rem;
       font-weight: bold;
       cursor: pointer;
       transition: transform 0.05s, opacity 0.15s;
@@ -76,16 +76,20 @@
       background-color: #ff6b6b;
       color: #fff;
       width: 100%;
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       padding: 14px;
     }
     .btn-secondary {
       background-color: #4ecdc4;
       color: #fff;
     }
+    .btn-gray {
+      background-color: #e9ecef;
+      color: #495057;
+    }
     .btn-small {
-      padding: 8px 12px;
-      font-size: 0.85rem;
+      padding: 7px 10px;
+      font-size: 0.82rem;
     }
     .player-tags {
       display: flex;
@@ -107,32 +111,149 @@
       font-weight: bold;
       cursor: pointer;
     }
+    .info-box {
+      background: #fff9db;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 0.85rem;
+      color: #664d03;
+      margin-bottom: 16px;
+      line-height: 1.45;
+    }
+
+    /* お絵描き画面 */
+    .draw-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      background: #f8f9fa;
+      padding: 8px 12px;
+      border-radius: 10px;
+    }
+    .drawer-name {
+      font-weight: bold;
+      font-size: 1rem;
+      color: #2b2d42;
+    }
+    .timer-badge {
+      background: #ff6b6b;
+      color: #fff;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 0.95rem;
+      min-width: 68px;
+      text-align: center;
+    }
+    .timer-badge.urgent {
+      background: #c92a2a;
+      animation: pulse 0.6s infinite alternate;
+    }
+    @keyframes pulse {
+      from { transform: scale(1); }
+      to { transform: scale(1.06); }
+    }
+    .canvas-wrapper {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      border: 3px solid #333;
+      border-radius: 14px;
+      overflow: hidden;
+      background: #ffffff;
+      margin-bottom: 10px;
+      position: relative;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+      cursor: crosshair;
+    }
+    .tool-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .color-palette {
+      display: flex;
+      gap: 6px;
+    }
+    .color-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      padding: 0;
+      border: 2px solid #fff;
+      box-shadow: 0 0 0 1px #ccc;
+    }
+    .color-btn.active {
+      box-shadow: 0 0 0 3px #333;
+      transform: scale(1.1);
+    }
+    .size-palette {
+      display: flex;
+      gap: 4px;
+    }
+    .size-btn {
+      padding: 5px 9px;
+      font-size: 0.78rem;
+      background: #f1f3f5;
+      color: #333;
+    }
+    .size-btn.active {
+      background: #333;
+      color: #fff;
+    }
+    .canvas-actions {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .canvas-actions button {
+      flex: 1;
+    }
+
     /* ゲーム画面 */
     .status-bar {
       display: flex;
       justify-content: space-between;
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       font-weight: bold;
-      color: #666;
-      margin-bottom: 12px;
+      color: #555;
+      margin-bottom: 8px;
       background: #f8f9fa;
       padding: 8px 12px;
       border-radius: 8px;
     }
+    .turn-banner {
+      background: #e7f5ff;
+      color: #1864ab;
+      font-weight: bold;
+      text-align: center;
+      padding: 8px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      font-size: 0.95rem;
+    }
     .card-area {
       width: 100%;
       aspect-ratio: 1 / 1;
-      max-height: 290px;
+      max-height: 280px;
       border: 4px solid #333;
-      border-radius: 20px;
+      border-radius: 18px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      margin: 0 auto 14px;
+      margin: 0 auto 12px;
       position: relative;
       overflow: hidden;
-      background-color: #fffdf9;
+      background-color: #ffffff;
       user-select: none;
     }
     .card-area.back {
@@ -147,31 +268,20 @@
       cursor: pointer;
     }
     .card-area img {
-      width: 85%;
-      height: 85%;
+      width: 92%;
+      height: 92%;
       object-fit: contain;
-    }
-    .fallback-char {
-      font-size: 5rem;
-      line-height: 1;
-    }
-    .fallback-label {
-      margin-top: 8px;
-      font-weight: bold;
-      font-size: 1.1rem;
-      background: rgba(255,255,255,0.85);
-      padding: 4px 12px;
-      border-radius: 12px;
     }
     .badge {
       position: absolute;
-      top: 10px;
-      left: 10px;
-      padding: 5px 10px;
+      top: 8px;
+      left: 8px;
+      padding: 4px 10px;
       border-radius: 8px;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       font-weight: bold;
       color: #fff;
+      z-index: 2;
     }
     .badge-new {
       background-color: #ff9f43;
@@ -182,38 +292,39 @@
     .name-memo-box {
       display: flex;
       gap: 6px;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
     .score-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 8px;
-      margin-top: 12px;
+      margin-top: 8px;
     }
     .player-score-btn {
       background: #f1f3f5;
       color: #333;
       border: 2px solid #dee2e6;
-      padding: 10px 8px;
+      padding: 9px 8px;
       display: flex;
       flex-direction: column;
       align-items: center;
       border-radius: 12px;
     }
     .player-score-btn .p-name {
-      font-size: 0.95rem;
+      font-size: 0.92rem;
       margin-bottom: 2px;
     }
     .player-score-btn .p-pts {
-      font-size: 1.2rem;
+      font-size: 1.15rem;
       color: #d9534f;
     }
     .action-hint {
       text-align: center;
-      font-size: 0.85rem;
+      font-size: 0.84rem;
       color: #666;
       margin: 6px 0;
     }
+
     /* リザルト画面 */
     .result-list {
       list-style: none;
@@ -223,9 +334,9 @@
     .result-list li {
       display: flex;
       justify-content: space-between;
-      padding: 12px;
+      padding: 11px 12px;
       border-bottom: 1px solid #eee;
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       font-weight: bold;
     }
     .result-list li:first-child {
@@ -235,21 +346,35 @@
     }
     .char-gallery {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      margin-top: 12px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 10px;
     }
     .gallery-item {
       border: 1px solid #ddd;
-      border-radius: 8px;
-      padding: 6px;
+      border-radius: 10px;
+      padding: 8px;
       text-align: center;
-      font-size: 0.75rem;
+      background: #fafafa;
     }
     .gallery-item img {
       width: 100%;
-      height: 60px;
+      height: 110px;
       object-fit: contain;
+      background: #fff;
+      border-radius: 6px;
+      border: 1px solid #eee;
+    }
+    .gallery-name {
+      font-weight: bold;
+      font-size: 0.9rem;
+      margin-top: 6px;
+      color: #222;
+    }
+    .gallery-author {
+      font-size: 0.75rem;
+      color: #777;
+      margin-top: 2px;
     }
   </style>
 </head>
@@ -257,8 +382,15 @@
 
   <!-- 1. スタート画面 -->
   <div id="setup-screen" class="screen active">
-    <h1>👾 ナンジャモンジャ風</h1>
-    
+    <h1>🎨 お絵描きナンジャモンジャ</h1>
+
+    <div class="info-box">
+      <strong>遊び方：</strong><br>
+      ① 1人2枚ずつ（制限時間60秒）謎の生き物を描きます。<br>
+      ② 描いた絵がシャッフルされて山札になります。<br>
+      ③ めくった人が名前をつけ、2回目以降は早く叫んだ人が獲得！
+    </div>
+
     <div class="setting-group">
       <label>プレイヤーを追加（2人〜）</label>
       <div class="player-input-row">
@@ -269,99 +401,133 @@
     </div>
 
     <div class="setting-group">
-      <label>キャラの種類数（各4枚ずつ山札に入ります）</label>
-      <select id="char-count-select">
-        <option value="6">6種類（計24枚・サクッと）</option>
-        <option value="8">8種類（計32枚・ちょうどいい）</option>
-        <option value="10" selected>10種類（計40枚・標準）</option>
-        <option value="12">12種類（計48枚・たっぷり）</option>
-      </select>
-    </div>
-
-    <div class="setting-group">
       <label>
         <input type="checkbox" id="enable-memo" checked>
         初登場時に「あだ名メモ」を入力できるようにする
       </label>
     </div>
 
-    <button class="btn-primary" onclick="startGame()">ゲームスタート！</button>
+    <button class="btn-primary" onclick="startDrawingPhase()">お絵描きタイムへ進む！</button>
   </div>
 
-  <!-- 2. ゲーム画面 -->
+  <!-- 2. お絵描きフェーズ画面 -->
+  <div id="draw-screen" class="screen">
+    <div class="draw-header">
+      <div>
+        <div class="drawer-name" id="drawer-title">〇〇 のターン</div>
+        <div style="font-size: 0.8rem; color: #666;" id="draw-progress">1 / 6 枚目</div>
+      </div>
+      <div class="timer-badge" id="draw-timer">60秒</div>
+    </div>
+
+    <div class="canvas-wrapper">
+      <canvas id="draw-canvas" width="500" height="500"></canvas>
+    </div>
+
+    <div class="tool-row">
+      <div class="color-palette" id="color-palette">
+        <button class="color-btn active" style="background:#222222;" data-color="#222222"></button>
+        <button class="color-btn" style="background:#e03131;" data-color="#e03131"></button>
+        <button class="color-btn" style="background:#1971c2;" data-color="#1971c2"></button>
+        <button class="color-btn" style="background:#2f9e44;" data-color="#2f9e44"></button>
+        <button class="color-btn" style="background:#f08c00;" data-color="#f08c00"></button>
+        <button class="color-btn" style="background:#9c36b5;" data-color="#9c36b5"></button>
+      </div>
+      <div class="size-palette" id="size-palette">
+        <button class="size-btn" data-size="4">細</button>
+        <button class="size-btn active" data-size="9">中</button>
+        <button class="size-btn" data-size="18">太</button>
+      </div>
+    </div>
+
+    <div class="canvas-actions">
+      <button class="btn-gray btn-small" onclick="undoCanvas()">↩ 1つ戻る</button>
+      <button class="btn-gray btn-small" onclick="clearCanvas()">🗑 全消し</button>
+    </div>
+
+    <button class="btn-primary" onclick="finishCurrentDrawing()">描き終わった！次へ</button>
+  </div>
+
+  <!-- 3. ゲーム本編画面 -->
   <div id="game-screen" class="screen">
     <div class="status-bar">
       <span>残り山札: <strong id="deck-count">0</strong>枚</span>
       <span>場の溜まり: <strong id="pool-count">0</strong>枚</span>
     </div>
 
-    <!-- カード表示エリア -->
-    <div id="card-display" class="card-area back" onclick="drawCard()">
-      <div style="font-size: 1.5rem; font-weight: bold;">タップしてめくる</div>
+    <div class="turn-banner" id="turn-banner">
+      次は 〇〇 さんがめくる番！
     </div>
 
-    <!-- 初登場時のあだ名メモ欄 -->
+    <div id="card-display" class="card-area back" onclick="drawCard()">
+      <div style="font-size: 1.4rem; font-weight: bold;">タップしてめくる</div>
+    </div>
+
     <div id="memo-area" class="name-memo-box" style="display: none;">
       <input type="text" id="char-name-input" placeholder="つけた名前をメモ（任意）">
       <button class="btn-secondary btn-small" onclick="saveCharName()">保存</button>
     </div>
 
     <div id="action-instruction" class="action-hint">
-      カードをタップして次のキャラをめくろう！
+      カードをタップして最初の1枚をめくろう！
     </div>
 
     <button id="next-btn" class="btn-primary" onclick="drawCard()" style="margin-bottom: 10px;">
       次のカードをめくる
     </button>
 
-    <div class="action-hint" style="margin-top: 12px; font-weight: bold;">
+    <div class="action-hint" style="margin-top: 10px; font-weight: bold;">
       ▼ 名前を叫んで正解した人をタップ（場の枚数を獲得）
     </div>
     <div class="score-grid" id="score-grid"></div>
   </div>
 
-  <!-- 3. リザルト画面 -->
+  <!-- 4. リザルト画面 -->
   <div id="result-screen" class="screen">
     <h1>🎉 結果発表！</h1>
     <ul class="result-list" id="result-list"></ul>
-    
-    <div style="font-weight: bold; font-size: 0.9rem; margin-top: 16px;">今回登場したキャラたち</div>
+
+    <div style="font-weight: bold; font-size: 0.95rem; margin-top: 14px;">
+      今回生まれたキャラ＆作者一覧
+    </div>
     <div class="char-gallery" id="char-gallery"></div>
 
     <button class="btn-primary" onclick="resetToSetup()" style="margin-top: 20px;">
-      設定画面に戻る
+      最初の画面に戻る
     </button>
   </div>
 
   <script>
-    // 仮表示用の絵文字と背景色（画像がない場合のフォールバック）
-    const FALLBACK_DATA = [
-      { emoji: "🐙", color: "#ffe3e3" },
-      { emoji: "🌵", color: "#d3f9d8" },
-      { emoji: "👻", color: "#e7f5ff" },
-      { emoji: "🍄", color: "#fff3bf" },
-      { emoji: "🤖", color: "#f3d9fa" },
-      { emoji: "🦖", color: "#c3fae8" },
-      { emoji: "👽", color: "#e5dbff" },
-      { emoji: "🦑", color: "#ffd8a8" },
-      { emoji: "🐡", color: "#d0ebff" },
-      { emoji: "🦥", color: "#f4fce3" },
-      { emoji: "🦩", color: "#ffdeeb" },
-      { emoji: "🦔", color: "#f1f3f5" }
-    ];
-
     let players = ["プレイヤー1", "プレイヤー2", "プレイヤー3"];
     let scores = {};
-    let deck = [];
-    let poolCount = 0;
-    let seenChars = {}; // { charId: { seen: true, name: "" } }
-    let currentCardId = null;
-    let charCount = 10;
     let enableMemo = true;
 
-    // 初期プレイヤー表示
-    renderPlayerTags();
+    // お絵描き管理用
+    let drawTasks = []; // [{ author: "名前", round: 1 }, ...]
+    let currentTaskIdx = 0;
+    let timerInterval = null;
+    let timeLeft = 60;
+    let characters = []; // [{ id, author, dataUrl, name, seen }]
 
+    // キャンバス描画用
+    const canvas = document.getElementById("draw-canvas");
+    const ctx = canvas.getContext("2d");
+    let isDrawing = false;
+    let currentColor = "#222222";
+    let currentSize = 9;
+    let historyStack = [];
+
+    // ゲーム進行用
+    let deck = [];
+    let poolCount = 0;
+    let currentCardId = null;
+    let turnOrder = [];
+    let turnIndex = 0;
+
+    renderPlayerTags();
+    setupCanvasEvents();
+
+    // --- プレイヤー設定 ---
     function addPlayer() {
       const input = document.getElementById("player-name-input");
       const name = input.value.trim();
@@ -395,45 +561,221 @@
       });
     }
 
-    function startGame() {
-      charCount = parseInt(document.getElementById("char-count-select").value, 10);
+    // --- お絵描きフェーズ ---
+    function startDrawingPhase() {
       enableMemo = document.getElementById("enable-memo").checked;
+      characters = [];
+      drawTasks = [];
 
-      // スコア初期化
+      // 1人2枚ずつタスク作成（1周目→2周目）
+      for (let round = 1; round <= 2; round++) {
+        players.forEach(p => {
+          drawTasks.push({ author: p, round: round });
+        });
+      }
+
+      currentTaskIdx = 0;
+      document.getElementById("setup-screen").classList.remove("active");
+      document.getElementById("draw-screen").classList.add("active");
+
+      loadCurrentDrawTask();
+    }
+
+    function loadCurrentDrawTask() {
+      const task = drawTasks[currentTaskIdx];
+      document.getElementById("drawer-title").textContent = `🎨 ${task.author} のターン（${task.round}枚目）`;
+      document.getElementById("draw-progress").textContent = `全体進捗：${currentTaskIdx + 1} / ${drawTasks.length} 枚目`;
+
+      clearCanvas();
+      historyStack = [];
+      saveHistory();
+
+      // タイマー開始（60秒）
+      clearInterval(timerInterval);
+      timeLeft = 60;
+      updateTimerDisplay();
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        updateTimerDisplay();
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          finishCurrentDrawing();
+        }
+      }, 1000);
+    }
+
+    function updateTimerDisplay() {
+      const badge = document.getElementById("draw-timer");
+      badge.textContent = `${timeLeft}秒`;
+      if (timeLeft <= 10) {
+        badge.classList.add("urgent");
+      } else {
+        badge.classList.remove("urgent");
+      }
+    }
+
+    function finishCurrentDrawing() {
+      clearInterval(timerInterval);
+      const task = drawTasks[currentTaskIdx];
+      const dataUrl = canvas.toDataURL("image/png");
+
+      characters.push({
+        id: currentTaskIdx,
+        author: task.author,
+        dataUrl: dataUrl,
+        name: "",
+        seen: false
+      });
+
+      currentTaskIdx++;
+      if (currentTaskIdx < drawTasks.length) {
+        loadCurrentDrawTask();
+      } else {
+        startGame();
+      }
+    }
+
+    // --- キャンバス操作 ---
+    function setupCanvasEvents() {
+      // 色選択
+      document.querySelectorAll(".color-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll(".color-btn").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          currentColor = btn.dataset.color;
+        });
+      });
+
+      // 太さ選択
+      document.querySelectorAll(".size-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll(".size-btn").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          currentSize = parseInt(btn.dataset.size, 10);
+        });
+      });
+
+      const getPos = (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return {
+          x: (clientX - rect.left) * (canvas.width / rect.width),
+          y: (clientY - rect.top) * (canvas.height / rect.height)
+        };
+      };
+
+      const start = (e) => {
+        e.preventDefault();
+        isDrawing = true;
+        const pos = getPos(e);
+        ctx.beginPath();
+        ctx.moveTo(pos.x, pos.y);
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        ctx.strokeStyle = currentColor;
+        ctx.lineWidth = currentSize;
+        // 点打ち対応
+        ctx.lineTo(pos.x + 0.1, pos.y + 0.1);
+        ctx.stroke();
+      };
+
+      const move = (e) => {
+        if (!isDrawing) return;
+        e.preventDefault();
+        const pos = getPos(e);
+        ctx.lineTo(pos.x, pos.y);
+        ctx.stroke();
+      };
+
+      const end = () => {
+        if (!isDrawing) return;
+        isDrawing = false;
+        ctx.closePath();
+        saveHistory();
+      };
+
+      canvas.addEventListener("mousedown", start);
+      canvas.addEventListener("mousemove", move);
+      window.addEventListener("mouseup", end);
+
+      canvas.addEventListener("touchstart", start, { passive: false });
+      canvas.addEventListener("touchmove", move, { passive: false });
+      canvas.addEventListener("touchend", end);
+    }
+
+    function clearCanvas() {
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function saveHistory() {
+      if (historyStack.length > 15) historyStack.shift();
+      historyStack.push(canvas.toDataURL());
+    }
+
+    function undoCanvas() {
+      if (historyStack.length <= 1) {
+        clearCanvas();
+        historyStack = [];
+        saveHistory();
+        return;
+      }
+      historyStack.pop();
+      const prevData = historyStack[historyStack.length - 1];
+      const img = new Image();
+      img.onload = () => {
+        clearCanvas();
+        ctx.drawImage(img, 0, 0);
+      };
+      img.src = prevData;
+    }
+
+    // --- ゲーム本編 ---
+    function startGame() {
       scores = {};
       players.forEach(p => scores[p] = 0);
 
+      // めくる順番をランダムシャッフル
+      turnOrder = [...players];
+      for (let i = turnOrder.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [turnOrder[i], turnOrder[j]] = [turnOrder[j], turnOrder[i]];
+      }
+      turnIndex = 0;
+
       // 山札作成（各キャラ4枚ずつ）
       deck = [];
-      for (let i = 1; i <= charCount; i++) {
+      characters.forEach(c => {
         for (let copy = 0; copy < 4; copy++) {
-          deck.push(i);
+          deck.push(c.id);
         }
-      }
-      // シャッフル（Fisher-Yates）
+      });
       for (let i = deck.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [deck[i], deck[j]] = [deck[j], deck[i]];
       }
 
       poolCount = 0;
-      seenChars = {};
       currentCardId = null;
 
-      // 画面切り替え
-      document.getElementById("setup-screen").classList.remove("active");
+      document.getElementById("draw-screen").classList.remove("active");
       document.getElementById("result-screen").classList.remove("active");
       document.getElementById("game-screen").classList.add("active");
 
-      // カード表示リセット
       const cardDisplay = document.getElementById("card-display");
       cardDisplay.className = "card-area back";
-      cardDisplay.style.backgroundColor = "";
-      cardDisplay.innerHTML = '<div style="font-size: 1.5rem; font-weight: bold;">タップしてめくる</div>';
+      cardDisplay.innerHTML = '<div style="font-size: 1.4rem; font-weight: bold;">タップしてめくる</div>';
       document.getElementById("memo-area").style.display = "none";
 
+      updateTurnBanner();
       updateStatus();
       renderScoreButtons();
+    }
+
+    function updateTurnBanner() {
+      const currentPlayer = turnOrder[turnIndex % turnOrder.length];
+      document.getElementById("turn-banner").textContent = `👉 次は「${currentPlayer}」がめくる番！`;
     }
 
     function drawCard() {
@@ -442,39 +784,30 @@
         return;
       }
 
-      // 山札から1枚引く
+      const drawer = turnOrder[turnIndex % turnOrder.length];
+      turnIndex++;
+
       currentCardId = deck.pop();
       poolCount++;
+
+      const charObj = characters[currentCardId];
+      const isFirstTime = !charObj.seen;
+      if (isFirstTime) {
+        charObj.seen = true;
+      }
 
       const cardDisplay = document.getElementById("card-display");
       cardDisplay.className = "card-area";
 
-      const isFirstTime = !seenChars[currentCardId];
-      if (isFirstTime) {
-        seenChars[currentCardId] = { seen: true, name: "" };
-      }
-
-      // バッジ作成
       const badgeHtml = isFirstTime
-        ? `<div class="badge badge-new">✨ 初登場！名前をつけよう</div>`
+        ? `<div class="badge badge-new">✨ 初登場！「${drawer}」が命名！</div>`
         : `<div class="badge badge-known">🔥 2回目以降！名前を叫べ！</div>`;
 
-      // 画像パス（images/01.png 〜 12.png）
-      const paddedId = String(currentCardId).padStart(2, "0");
-      const imgPath = `images/${paddedId}.png`;
-      const fb = FALLBACK_DATA[(currentCardId - 1) % FALLBACK_DATA.length];
-
-      cardDisplay.style.backgroundColor = fb.color;
       cardDisplay.innerHTML = `
         ${badgeHtml}
-        <img src="${imgPath}" alt="キャラ${currentCardId}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-        <div style="display:none; flex-direction:column; align-items:center;">
-          <div class="fallback-char">${fb.emoji}</div>
-          <div class="fallback-label">仮キャラ No.${paddedId}</div>
-        </div>
+        <img src="${charObj.dataUrl}" alt="キャラ">
       `;
 
-      // メモ欄の制御
       const memoArea = document.getElementById("memo-area");
       const nameInput = document.getElementById("char-name-input");
       if (enableMemo && isFirstTime) {
@@ -484,32 +817,31 @@
         memoArea.style.display = "none";
       }
 
-      // ガイダンス文言
       const inst = document.getElementById("action-instruction");
       if (isFirstTime) {
-        inst.textContent = "初登場です！名前をつけたら「次のカードをめくる」へ";
+        inst.textContent = `${drawer} さんが名前をつけたら次の人へ！`;
       } else {
         inst.textContent = "一番早く名前を叫んだ人のボタンをタップ！";
       }
 
-      // 最後の1枚だった場合
       const nextBtn = document.getElementById("next-btn");
       if (deck.length === 0) {
         nextBtn.textContent = "結果発表へ進む";
       } else {
         nextBtn.textContent = "次のカードをめくる";
+        updateTurnBanner();
       }
 
       updateStatus();
     }
 
     function saveCharName() {
-      if (!currentCardId) return;
+      if (currentCardId === null) return;
       const val = document.getElementById("char-name-input").value.trim();
       if (val) {
-        seenChars[currentCardId].name = val;
+        characters[currentCardId].name = val;
         document.getElementById("memo-area").style.display = "none";
-        document.getElementById("action-instruction").textContent = `「${val}」で記録しました！次のカードへ`;
+        document.getElementById("action-instruction").textContent = `「${val}」で記録しました！次の人へ`;
       }
     }
 
@@ -557,7 +889,6 @@
       document.getElementById("game-screen").classList.remove("active");
       document.getElementById("result-screen").classList.add("active");
 
-      // ランキング表示
       const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
       const list = document.getElementById("result-list");
       list.innerHTML = "";
@@ -568,28 +899,25 @@
         list.appendChild(li);
       });
 
-      // 登場キャラ一覧
       const gallery = document.getElementById("char-gallery");
       gallery.innerHTML = "";
-      for (let i = 1; i <= charCount; i++) {
-        if (!seenChars[i]) continue;
-        const paddedId = String(i).padStart(2, "0");
-        const fb = FALLBACK_DATA[(i - 1) % FALLBACK_DATA.length];
-        const savedName = seenChars[i].name || `キャラ No.${paddedId}`;
-
+      characters.forEach((c, idx) => {
+        const savedName = c.name || `キャラ No.${idx + 1}`;
         const item = document.createElement("div");
         item.className = "gallery-item";
         item.innerHTML = `
-          <img src="images/${paddedId}.png" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-          <div style="display:none; font-size:2rem;">${fb.emoji}</div>
-          <div style="font-weight:bold; margin-top:4px;">${savedName}</div>
+          <img src="${c.dataUrl}" alt="${savedName}">
+          <div class="gallery-name">${savedName}</div>
+          <div class="gallery-author">作：${c.author}</div>
         `;
         gallery.appendChild(item);
-      }
+      });
     }
 
     function resetToSetup() {
+      clearInterval(timerInterval);
       document.getElementById("result-screen").classList.remove("active");
+      document.getElementById("draw-screen").classList.remove("active");
       document.getElementById("setup-screen").classList.add("active");
     }
   </script>
